@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <title>Personium Cell</title>
+  <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+  <script type="text/javascript">
+    $(document).ready(function(){
+      // Get URL of cell
+      var match = location.search.match(/cellURL=(.*?)(&|$)/);
+      if (match) {
+        var cellURL = match[1];
+        sessionStorage.cellURL = cellURL;
+      } else {
+        // No cell designation, check session
+        if (!sessionStorage.cellURL) {
+          // If there is no cell URL in the session, the cell input dialog display
+          cellURL = window.prompt("Please enter cell URL", "");
+          if (cellURL) {
+            sessionStorage.cellURL = cellURL;
+          }
+          sessionStorage.removeItem("accessToken");
+        }
+      }
+      $("#cellInfo").text(sessionStorage.cellURL);
+  
+      if (!sessionStorage.code) {
+        // If there is no data in the session, check the parameters
+        match = location.search.match(/code=(.*?)(&|$)/);
+        if (match) {
+          // Since there is an access token, save it in the sessionww
+          var code = match[1];
+          sessionStorage.code = code;
+          // Information display using session token
+          getAppToken();
+        }
+      } else {
+        // Information display using session token
+        getAppToken();
+      }
+    });
+
+    function getAppToken() {
+      $.ajax({
+        type: "POST",
+        url: "https://demo.personium.io/ksakamoto-test-app/__token",
+        data: {
+          grant_type: "password",
+          username: "me",
+          password: "personium",
+          p_target: sessionStorage.cellURL
+        },
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }).done(function(appTokenInfo) {
+        getToken(appTokenInfo.access_token);
+      }).fail(function(error) {
+        console.log(error);
+      })
+    }
+
+    function getToken(token) {
+      $.ajax({
+        type: "POST",
+        url: sessionStorage.cellURL + "__token",
+        data: {
+          grant_type: "authorization_code",
+          code: sessionStorage.code,
+          client_id: "https://demo.personium.io/ksakamoto-test-app/",
+          client_secret: token
+        },
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }).done(function(tokenInfo) {
+        sessionStorage.tokenInfo = tokenInfo;
+        sessionStorage.accessToken = tokenInfo.access_token;
+        dispInfo();
+      }).fail(function(error) {
+        console.log(error);
+      })
+    }
+
+    function dispInfo() {
+      $("#codeInfo").text(sessionStorage.code);
+      $("#tokenInfo").text(sessionStorage.accessToken);
+      $("#cellInfo").text(sessionStorage.cellURL);
+    }
+
+    function sendAuthz() {
+      // Transit to authz
+      var authz = sessionStorage.cellURL + "__authz?response_type=code&redirect_uri=" + location.origin + location.pathname + "&client_id=https://demo.personium.io/ksakamoto-test-app/&state=test";
+      location.href = authz;
+    }
+  </script>
+</head>
+<body>
+  <div id="loadContent" class="loadHiddenDiv">
+    Code Flow TEST
+  </div>
+  <div>
+    Code obtained from the authentication page<br>
+    code=
+    <span id="codeInfo"></span>
+  </div>
+  <div style="margin-top: 10px;">
+    Tokens acquired using code<br>
+    token=
+    <span id="tokenInfo"></span>
+  </div>
+  <div style="margin-top: 10px;">
+    The specified CELL URL<br>
+    cellURL=
+    <span id="cellInfo"></span>
+  </div>
+  <div>
+    <input type="button" onclick="sendAuthz();" value="Get Token"/>
+    <input type="button" onclick="sessionStorage.clear();" value="Clear Session"/>
+  </div>
+</body>
+</html>

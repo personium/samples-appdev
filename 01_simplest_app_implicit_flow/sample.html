@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <title>Personium Cell</title>
+  <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+  <script type="text/javascript">
+    $(document).ready(function(){
+      // Get URL of cell
+      var match = location.search.match(/cellURL=(.*?)(&|$)/);
+      if (match) {
+        var cellURL = match[1];
+        sessionStorage.cellURL = cellURL;
+      } else {
+        // No cell designation, check session
+        if (!sessionStorage.cellURL) {
+          // If there is no cell URL in the session, the cell input dialog display
+          cellURL = window.prompt("Please enter cell URL", "");
+          if (cellURL) {
+            sessionStorage.cellURL = cellURL;
+          }
+          sessionStorage.removeItem("accessToken");
+        }
+      }
+      $("#cellInfo").text(sessionStorage.cellURL);
+  
+      if (!sessionStorage.accessToken) {
+        // If there is no data in the session, check the parameters
+        match = location.hash.match(/access_token=(.*?)(&|$)/);
+        if (match) {
+          // Since there is an access token, save it in the sessionww
+          var token = match[1];
+          sessionStorage.accessToken = token;
+          // Information display using session token
+          $("#tokenInfo").text(sessionStorage.accessToken);
+          $("#cellInfo").text(sessionStorage.cellURL);
+        }
+      } else {
+        // Information display using session token
+        $("#tokenInfo").text(sessionStorage.accessToken);
+        $("#cellInfo").text(sessionStorage.cellURL);
+      }
+    });
+
+    function sendAuthz() {
+      // Transit to authz
+      var authz = sessionStorage.cellURL + "__authz?response_type=token&redirect_uri=" + location.origin + location.pathname + "&client_id=https://demo.personium.io/ksakamoto-test-app/";
+      location.href = authz;
+    }
+  </script>
+</head>
+<body>
+  <div id="loadContent" class="loadHiddenDiv">
+    Implicit Flow TEST
+  </div>
+  <div>
+    Tokens obtained from the authentication page<br>
+    token=
+    <span id="tokenInfo"></span>
+  </div>
+  <div style="margin-top: 10px;">
+    The specified CELL URL<br>
+    cellURL=
+    <span id="cellInfo"></span>
+  </div>
+  <div>
+    <input type="button" onclick="sendAuthz();" value="Get Token"/>
+    <input type="button" onclick="sessionStorage.clear();" value="Clear Session"/>
+  </div>
+</body>
+</html>

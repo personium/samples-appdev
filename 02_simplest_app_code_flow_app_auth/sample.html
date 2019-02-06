@@ -49,11 +49,11 @@
     function getAppToken() {
       $.ajax({
         type: "POST",
-        url: "https://demo.personium.io/ksakamoto-test-app/__token",
+        url: "https://demo.personium.io/samples-appdev/__token",
         data: {
           grant_type: "password",
-          username: "me",
-          password: "personium",
+          username: "username",
+          password: "password",
           p_target: sessionStorage.cellURL
         },
         headers: {
@@ -74,7 +74,7 @@
         data: {
           grant_type: "authorization_code",
           code: sessionStorage.code,
-          client_id: "https://demo.personium.io/ksakamoto-test-app/",
+          client_id: "https://demo.personium.io/samples-appdev/",
           client_secret: token
         },
         headers: {
@@ -98,7 +98,7 @@
 
     function sendAuthz() {
       // Transit to authz
-      var authz = sessionStorage.cellURL + "__authz?response_type=code&redirect_uri=" + location.origin + location.pathname + "&client_id=https://demo.personium.io/ksakamoto-test-app/&state=test";
+      var authz = sessionStorage.cellURL + "__authz?response_type=code&redirect_uri=" + location.origin + location.pathname + "&client_id=https://demo.personium.io/samples-appdev/&state=test";
       location.href = authz;
     }
   </script>

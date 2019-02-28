@@ -50,7 +50,7 @@
 
     function sendAuthz() {
       // Transit to authz
-      var authz = sessionStorage.cellURL + "__authz?response_type=token&redirect_uri=" + location.origin + location.pathname + "&client_id=https://demo.personium.io/samples-appdev/";
+      var authz = sessionStorage.cellURL + "__authz?response_type=token&redirect_uri=" + location.origin + location.pathname + "&client_id=https://samples-appdev.demo.personium.io/";
       location.href = authz;
     }
   </script>

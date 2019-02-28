@@ -3,7 +3,7 @@ OAuth認可エンドポイント(\__authz)を使用してコードを取得し�
 __authz認証のサンプル(token)と比べて、取得したコードだけでは操作が出来なず、コードに紐づいたトークンを払い出す為セキュリティに優れます。
 
 # 動作確認
-[サンプル](https://demo.personium.io/samples-appdev/__/02_simplest_app_code_flow_app_auth/html/sample.html)
+[サンプル](https://samples-appdev.demo.personium.io/__/02_simplest_app_code_flow_app_auth/html/sample.html)
 
 1. セルURLを入力します。  
 1. GetTokenボタンを押下し、認証ページが表示されます。(認証がされてない場合に\__authzが表示するページです。既に認証済みの場合表示されません。)  

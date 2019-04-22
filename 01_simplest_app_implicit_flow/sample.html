@@ -17,38 +17,33 @@
       if (match) {
         var cellURL = match[1];
         sessionStorage.cellURL = cellURL;
-      } else {
-        // No cell designation, check session
-        if (!sessionStorage.cellURL) {
-          // If there is no cell URL in the session, the cell input dialog display
-          cellURL = window.prompt("Please enter cell URL", "");
-          if (cellURL) {
-            sessionStorage.cellURL = cellURL;
-          }
-          sessionStorage.removeItem("accessToken");
-        }
       }
-      $("#cellInfo").text(sessionStorage.cellURL);
+      $("#cellUrl").val(sessionStorage.cellURL);
   
-      if (!sessionStorage.accessToken) {
-        // If there is no data in the session, check the parameters
-        match = location.hash.match(/access_token=(.*?)(&|$)/);
-        if (match) {
-          // Since there is an access token, save it in the sessionww
-          var token = match[1];
-          sessionStorage.accessToken = token;
-          // Information display using session token
-          $("#tokenInfo").text(sessionStorage.accessToken);
-          $("#cellInfo").text(sessionStorage.cellURL);
-        }
-      } else {
+      // If there is no data in the session, check the parameters
+      match = location.hash.match(/access_token=(.*?)(&|$)/);
+      if (match) {
+        // Since there is an access token, save it in the sessionww
+        var token = match[1];
+        sessionStorage.accessToken = token;
         // Information display using session token
         $("#tokenInfo").text(sessionStorage.accessToken);
-        $("#cellInfo").text(sessionStorage.cellURL);
+        $("#tokenDisp").show();
+      }
+
+      match = location.hash.match(/box_not_installed=(.*?)(&|$)/);
+      if (match) {
+        var notInstalled = match[1];
+        if (notInstalled == "true") {
+          $("#notBox").show();
+          $("#tokenDesc").hide();
+        }
       }
     });
 
     function sendAuthz() {
+      sessionStorage.cellURL = $("#cellUrl").val();
+
       // Transit to authz
       var authz = sessionStorage.cellURL + "__authz?response_type=token&redirect_uri=" + location.origin + location.pathname + "&client_id=https://samples-appdev.demo.personium.io/";
       location.href = authz;
@@ -57,21 +52,36 @@
 </head>
 <body>
   <div id="loadContent" class="loadHiddenDiv">
-    Implicit Flow TEST
-  </div>
-  <div>
-    Tokens obtained from the authentication page<br>
-    token=
-    <span id="tokenInfo"></span>
+    <h1>Implicit Flow TEST</h1>
   </div>
   <div style="margin-top: 10px;">
-    The specified CELL URL<br>
+    <b>Personiumアプリは、どのCellに向けて動作するのかを決める必要があります。<br>
+    はじめに、その情報を指定してください。</b>
+    <br>
     cellURL=
-    <span id="cellInfo"></span>
+    <input type="text" id="cellUrl" />
   </div>
   <div>
     <input type="button" onclick="sendAuthz();" value="Get Token"/>
-    <input type="button" onclick="sessionStorage.clear();" value="Clear Session"/>
+  </div>
+  <br>
+  <div id="tokenDisp" style="display:none;">
+    <b>認証後、取得したトークン</b>
+    <br>
+    token=
+    <span id="tokenInfo"></span>
+    <br>
+    <div id="tokenDesc">
+      <b>上記トークンを使い、Personiumを操作する事が出来ます。</b>
+    </div>
+  </div>
+  <br>
+  <div id="notBox" style="display:none;">
+    <font style="color:red;">
+    <b>認証対象のアプリBoxがインストールされていません。<br>
+    取得したトークンを使って、以下のアプリセルのBoxインストールを行って下さい</b><br>
+    </font>
+    https://samples-appdev.demo.personium.io/
   </div>
 </body>
 </html>

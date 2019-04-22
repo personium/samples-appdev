@@ -17,32 +17,25 @@
       if (match) {
         var cellURL = match[1];
         sessionStorage.cellURL = cellURL;
-      } else {
-        // No cell designation, check session
-        if (!sessionStorage.cellURL) {
-          // If there is no cell URL in the session, the cell input dialog display
-          cellURL = window.prompt("Please enter cell URL", "");
-          if (cellURL) {
-            sessionStorage.cellURL = cellURL;
-          }
-          sessionStorage.removeItem("accessToken");
-        }
       }
-      $("#cellInfo").text(sessionStorage.cellURL);
-  
-      if (!sessionStorage.code) {
-        // If there is no data in the session, check the parameters
-        match = location.search.match(/code=(.*?)(&|$)/);
-        if (match) {
-          // Since there is an access token, save it in the sessionww
-          var code = match[1];
-          sessionStorage.code = code;
-          // Information display using session token
-          getAppToken();
+      $("#cellUrl").val(sessionStorage.cellURL);
+
+      // If there is no data in the session, check the parameters
+      match = location.search.match(/code=(.*?)(&|$)/);
+      if (match) {
+        // Since there is an access token, save it in the sessionww
+        var code = match[1];
+        $("#codeInfo").text(code);
+        $("#codeDisp").show();
+      }
+
+      match = location.search.match(/box_not_installed=(.*?)(&|$)/);
+      if (match) {
+        var notInstalled = match[1];
+        if (notInstalled == "true") {
+          $("#notBox").show();
+          $("#successCode").hide();
         }
-      } else {
-        // Information display using session token
-        getAppToken();
       }
     });
 
@@ -68,35 +61,34 @@
     }
 
     function getToken(token) {
+      var data = {
+        grant_type: "authorization_code",
+        code: $("#codeInfo").text(),
+        client_id: "https://samples-appdev.demo.personium.io/"
+      }
+      if (token) {
+        data.client_secret = token;
+      }
+
       $.ajax({
         type: "POST",
         url: sessionStorage.cellURL + "__token",
-        data: {
-          grant_type: "authorization_code",
-          code: sessionStorage.code,
-          client_id: "https://samples-appdev.demo.personium.io/",
-          client_secret: token
-        },
+        data: data,
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/x-www-form-urlencoded'
         }
       }).done(function(tokenInfo) {
-        sessionStorage.tokenInfo = tokenInfo;
-        sessionStorage.accessToken = tokenInfo.access_token;
-        dispInfo();
+        $("#tokenInfo").text(tokenInfo.access_token);
+        $("#tokenDisp").show();
       }).fail(function(error) {
         console.log(error);
       })
     }
 
-    function dispInfo() {
-      $("#codeInfo").text(sessionStorage.code);
-      $("#tokenInfo").text(sessionStorage.accessToken);
-      $("#cellInfo").text(sessionStorage.cellURL);
-    }
-
     function sendAuthz() {
+      sessionStorage.cellURL = $("#cellUrl").val();
+
       // Transit to authz
       var authz = sessionStorage.cellURL + "__authz?response_type=code&redirect_uri=" + location.origin + location.pathname + "&client_id=https://samples-appdev.demo.personium.io/&state=test";
       location.href = authz;
@@ -107,24 +99,44 @@
   <div id="loadContent" class="loadHiddenDiv">
     Code Flow TEST
   </div>
+  <div style="margin-top: 10px;">
+    <b>Personiumアプリは、どのCellに向けて動作するのかを決める必要があります。<br>
+    はじめに、その情報を指定してください。</b>
+    <br>
+    cellURL=
+    <input type="text" id="cellUrl" />
+  </div>
   <div>
-    Code obtained from the authentication page<br>
+    <input type="button" onclick="sendAuthz();" value="Get Code"/>
+  </div>
+  <br>
+  <div id="codeDisp" style="display:none;">
+    <b>認証後、取得したコード</b>
+    <br>
     code=
     <span id="codeInfo"></span>
+    <br>
+    <div id="successCode">
+      <b>上記コードを使い、Personiumを操作する為のトークンを取得出来ます。</b>
+      <br>
+      <input type="button" onclick="getAppToken();" value="Get Token"/>
+    </div>
   </div>
-  <div style="margin-top: 10px;">
-    Tokens acquired using code<br>
+  <br>
+  <div id="tokenDisp" style="display:none;">
+    <b>コードを使用して取得したトークン</b>
+    <br>
     token=
     <span id="tokenInfo"></span>
+    <br>
+    <b>上記トークンを使い、Personiumを操作する事が出来ます。</b>
   </div>
-  <div style="margin-top: 10px;">
-    The specified CELL URL<br>
-    cellURL=
-    <span id="cellInfo"></span>
-  </div>
-  <div>
-    <input type="button" onclick="sendAuthz();" value="Get Token"/>
-    <input type="button" onclick="sessionStorage.clear();" value="Clear Session"/>
+  <div id="notBox" style="display:none;">
+    <font style="color:red;">
+    <b>認証対象のアプリBoxがインストールされていません。<br>
+    取得したコードを使ってトークンを取得し、以下のアプリセルのBoxインストールを行って下さい</b><br>
+    </font>
+    https://samples-appdev.demo.personium.io/
   </div>
 </body>
 </html>
